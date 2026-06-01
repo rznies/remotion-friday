@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RetailPulse — AI Pricing Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #07070d;
+    --bg-surface: #0e0e18;
+    --bg-card: #141422;
+    --bg-elevated: #1a1a2e;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(255, 255, 255, 0.12);
+    --text-primary: #e8e6f0;
+    --text-secondary: #8b89a0;
+    --text-muted: #5a586e;
+    --accent-amber: #f5a623;
+    --accent-amber-dim: rgba(245, 166, 35, 0.15);
+    --accent-amber-glow: rgba(245, 166, 35, 0.08);
+    --accent-green: #34d399;
+    --accent-green-dim: rgba(52, 211, 153, 0.12);
+    --accent-blue: #60a5fa;
+    --accent-blue-dim: rgba(96, 165, 250, 0.12);
+    --accent-red: #f87171;
+    --accent-red-dim: rgba(248, 113, 113, 0.12);
+    --accent-purple: #a78bfa;
+    --accent-purple-dim: rgba(167, 139, 250, 0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-xs: 6px;
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 40px rgba(245, 166, 35, 0.06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  .dashboard {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    height: 100vh;
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out 0.3s forwards;
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+  /* ─── LEFT: CHAT PANEL ─── */
+  .chat-panel {
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .chat-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 200px;
+    background: linear-gradient(180deg, var(--accent-amber-glow) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .chat-header {
+    padding: 24px 24px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+    z-index: 1;
+  }
+  .chat-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .chat-logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent-amber) 0%, #e8860c 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 20px rgba(245, 166, 35, 0.25);
+  }
+  .chat-logo h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-amber) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .chat-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 48px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .chat-messages {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+  }
+  .message {
+    max-width: 92%;
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  .message.visible {
+    animation: msgIn 0.4s ease-out forwards;
+  }
+  @keyframes msgIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .message-user {
+    align-self: flex-end;
+  }
+  .message-ai {
+    align-self: flex-start;
+  }
+  .message-bubble-user {
+    background: linear-gradient(135deg, var(--accent-amber) 0%, #d4910e 100%);
+    color: #0a0a0f;
+    padding: 12px 18px;
+    border-radius: 18px 18px 4px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .message-bubble-ai {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    padding: 14px 18px;
+    border-radius: 18px 18px 18px 4px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+  .message-bubble-ai strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .message-bubble-ai .highlight {
+    color: var(--accent-amber);
+    font-weight: 600;
+  }
+  .ai-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ai-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .thinking {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 18px 18px 18px 4px;
+    opacity: 0;
+    width: fit-content;
+  }
+  .thinking.visible {
+    animation: msgIn 0.3s ease-out forwards;
+  }
+  .thinking-dots {
+    display: flex;
+    gap: 4px;
+  }
+  .thinking-dots span {
+    width: 6px;
+    height: 6px;
+    background: var(--accent-amber);
+    border-radius: 50%;
+    animation: dotBounce 1.4s infinite ease-in-out;
+  }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.16s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.32s; }
+  @keyframes dotBounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  .thinking-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .chat-input-area {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+  }
+  .chat-input-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 12px 16px;
+    gap: 12px;
+    transition: border-color 0.2s;
+  }
+  .chat-input-box.focused {
+    border-color: var(--accent-amber);
+    box-shadow: 0 0 0 3px var(--accent-amber-dim);
+  }
+  .chat-input-text {
+    flex: 1;
+    font-size: 13.5px;
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .cursor-blink {
+    display: inline-block;
+    width: 2px;
+    height: 16px;
+    background: var(--accent-amber);
+    animation: blink 0.8s infinite;
+    vertical-align: middle;
+    margin-left: 1px;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .send-btn {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, var(--accent-amber) 0%, #d48f0e 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s;
+  }
+  .send-btn.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .send-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: #0a0a0f;
+  }
+  /* ─── RIGHT: INTELLIGENCE PANEL ─── */
+  .intel-panel {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    position: relative;
+  }
+  .intel-panel::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(245, 166, 35, 0.03) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .intel-header {
+    padding: 24px 32px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(7, 7, 13, 0.85);
+    backdrop-filter: blur(20px);
+    z-index: 10;
+  }
+  .intel-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .intel-title span {
+    color: var(--text-primary);
+  }
+  .intel-badges {
+    display: flex;
+    gap: 8px;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .badge-live {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .badge-live::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  .badge-region {
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+  }
+  .intel-body {
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  /* ─── SECTION: PRICE ANALYSIS ─── */
+  .section {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .section.visible {
+    animation: sectionIn 0.6s ease-out forwards;
+  }
+  @keyframes sectionIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.2px;
+  }
+  .section-title .icon {
+    font-size: 16px;
+  }
+  .section-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  /* ─── PRICE CHART ─── */
+  .price-chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .chart-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .stat-value.amber { color: var(--accent-amber); }
+  .stat-value.green { color: var(--accent-green); }
+  .stat-value.blue { color: var(--accent-blue); }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .chart-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 160px;
+    padding-top: 20px;
+    position: relative;
+  }
+  .chart-area::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: var(--border-subtle);
+  }
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  .bar {
+    width: 100%;
+    max-width: 48px;
+    border-radius: 6px 6px 0 0;
+    position: relative;
+    transform-origin: bottom;
+    transform: scaleY(0);
+  }
+  .bar.animated {
+    animation: barGrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes barGrow {
+    to { transform: scaleY(1); }
+  }
+  .bar-default {
+    background: linear-gradient(180deg, rgba(96, 165, 250, 0.6) 0%, rgba(96, 165, 250, 0.2) 100%);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+  }
+  .bar-highlight {
+    background: linear-gradient(180deg, var(--accent-amber) 0%, rgba(245, 166, 35, 0.3) 100%);
+    border: 1px solid rgba(245, 166, 35, 0.5);
+    box-shadow: 0 0 20px rgba(245, 166, 35, 0.15);
+  }
+  .bar-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60px;
+    text-align: center;
+  }
+  .bar-price {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    opacity: 0;
+  }
+  .bar.animated .bar-price {
+    animation: fadeIn 0.3s ease-out 0.6s forwards;
+  }
+  .bar-highlight .bar-price {
+    color: var(--accent-amber);
+  }
+  /* ─── RECOMMENDATION CARD ─── */
+  .reco-card {
+    background: var(--bg-card);
+    border: 1px solid var(--accent-amber-dim);
+    border-radius: var(--radius);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-glow);
+  }
+  .reco-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-amber), #d48f0e 50%, var(--accent-green));
+  }
+  .reco-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .reco-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: var(--accent-amber-dim);
+    color: var(--accent-amber);
+    letter-spacing: 0.3px;
+  }
+  .confidence-ring {
+    width: 52px;
+    height: 52px;
+    position: relative;
+  }
+  .confidence-ring svg {
+    transform: rotate(-90deg);
+  }
+  .confidence-ring circle {
+    fill: none;
+    stroke-width: 4;
+  }
+  .confidence-track {
+    stroke: var(--border-subtle);
+  }
+  .confidence-fill {
+    stroke: var(--accent-green);
+    stroke-dasharray: 138.23;
+    stroke-dashoffset: 138.23;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s ease-out;
+  }
+  .confidence-fill.animated {
+    stroke-dashoffset: 17.28;
+  }
+  .confidence-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-green);
+  }
+  .reco-price-range {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .reco-price {
+    font-family: 'Outfit', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .reco-price-separator {
+    font-size: 18px;
+    color: var(--text-muted);
+  }
+  .reco-context {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .reco-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .reco-metric {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    text-align: center;
+  }
+  .reco-metric-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .reco-metric-value.green { color: var(--accent-green); }
+  .reco-metric-value.amber { color: var(--accent-amber); }
+  .reco-metric-value.blue { color: var(--accent-blue); }
+  .reco-metric-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  /* ─── COMPETITOR CARDS ─── */
+  .competitors-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .comp-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    transition: all 0.3s;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  .comp-card.visible {
+    animation: compIn 0.5s ease-out forwards;
+  }
+  @keyframes compIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .comp-rank {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .comp-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .comp-seller {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .comp-price {
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+  .comp-rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .comp-stars {
+    color: var(--accent-amber);
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .comp-reviews {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .comp-card.your-product {
+    border-color: rgba(245, 166, 35, 0.3);
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(245, 166, 35, 0.04) 100%);
+  }
+  .your-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--accent-amber-dim);
+    color: var(--accent-amber);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  /* ─── PRICE SIMULATOR ─── */
+  .simulator-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .sim-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .sim-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 70px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .sim-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    position: relative;
+    overflow: visible;
+  }
+  .sim-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-amber), var(--accent-green));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 1.5s ease-out;
+  }
+  .sim-fill.animated {
+    width: 62%;
+  }
+  .sim-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    width: 18px;
+    height: 18px;
+    background: var(--accent-amber);
+    border-radius: 50%;
+    border: 3px solid var(--bg-card);
+    box-shadow: 0 0 12px rgba(245, 166, 35, 0.4);
+    transition: left 1.5s ease-out;
+  }
+  .sim-thumb.animated {
+    left: 62%;
+  }
+  .sim-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 60px;
+    text-align: right;
+  }
+  .sim-results {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .sim-result {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  .sim-result.visible {
+    animation: simResultIn 0.4s ease-out forwards;
+  }
+  @keyframes simResultIn {
+    to { opacity: 1; transform: scale(1); }
+  }
+  .sim-result-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .sim-result-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  /* ─── BASE NOISE TEXTURE ─── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.5;
+  }
+  .typewriter {
+    display: inline;
+  }
+</style>
+</head>
+<body>
+<div class="dashboard">
+  <!-- LEFT: CHAT PANEL -->
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-logo">
+        <div class="chat-logo-icon">⚡</div>
+        <h1>RetailPulse</h1>
+      </div>
+      <div class="chat-subtitle">Pricing Intelligence Copilot</div>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <!-- Message 1: User -->
+      <div class="message message-user" id="msg1">
+        <div class="message-bubble-user">
+          How should I price my bamboo water bottle? Competitors seem to be all over the place.
+        </div>
+      </div>
+      <!-- Thinking indicator -->
+      <div class="thinking" id="thinking1">
+        <div class="thinking-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <span class="thinking-text">Researching 12 competitors…</span>
+      </div>
+      <!-- Message 2: AI Response -->
+      <div class="message message-ai" id="msg2">
+        <div class="ai-label"><span class="ai-dot"></span> RetailPulse AI</div>
+        <div class="message-bubble-ai">
+          I analyzed <strong>12 competitors</strong> selling bamboo water bottles on Google Shopping. Here's what I found:
+          <br><br>
+          Prices range from <span class="highlight">₹449 to ₹899</span> with a market average of <span class="highlight">₹674</span>. I recommend pricing at <span class="highlight">₹649–699</span> for the best margin-to-competitiveness ratio.
+          <br><br>
+          See the breakdown on the right →
+        </div>
+      </div>
+      <!-- Message 3: User Follow-up -->
+      <div class="message message-user" id="msg3">
+        <div class="message-bubble-user">
+          What margin would I get at ₹679?
+        </div>
+      </div>
+      <!-- Message 4: AI Follow-up -->
+      <div class="message message-ai" id="msg4">
+        <div class="ai-label"><span class="ai-dot"></span> RetailPulse AI</div>
+        <div class="message-bubble-ai">
+          At <span class="highlight">₹679</span> with your cost of ₹394, you'd make <span class="highlight">₹285/unit (42% margin)</span>. That puts you at the <strong>45th percentile</strong> — competitive but not undercutting.
+          <br><br>
+          Try the price simulator to explore other scenarios ↓
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <div class="chat-input-box" id="chatInput">
+        <div class="chat-input-text">
+          <span id="inputText"></span><span class="cursor-blink" id="cursorBlink"></span>
+        </div>
+        <div class="send-btn" id="sendBtn">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- RIGHT: INTELLIGENCE PANEL -->
+  <div class="intel-panel">
+    <div class="intel-header">
+      <div class="intel-title">Analysis: <span>Bamboo Water Bottle</span></div>
+      <div class="intel-badges">
+        <span class="badge badge-live">Live Data</span>
+        <span class="badge badge-region">🇮🇳 India</span>
+      </div>
+    </div>
+    <div class="intel-body">
+      <!-- Section 1: Price Distribution -->
+      <div class="section" id="sec-chart">
+        <div class="section-header">
+          <div class="section-title"><span class="icon">📊</span> Competitive Landscape</div>
+          <div class="section-meta">12 competitors · Google Shopping</div>
+        </div>
+        <div class="price-chart-card">
+          <div class="chart-stats">
+            <div class="stat">
+              <div class="stat-value">₹449</div>
+              <div class="stat-label">Lowest</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value amber">₹674</div>
+              <div class="stat-label">Average</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">₹899</div>
+              <div class="stat-label">Highest</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value green">₹679</div>
+              <div class="stat-label">Suggested</div>
+            </div>
+          </div>
+          <div class="chart-area" id="chartArea">
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:45%" id="bar0"><span class="bar-price">₹449</span></div>
+              <div class="bar-label">EcoLife</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:52%" id="bar1"><span class="bar-price">₹499</span></div>
+              <div class="bar-label">GreenSip</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:58%" id="bar2"><span class="bar-price">₹549</span></div>
+              <div class="bar-label">Bamboo+</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:65%" id="bar3"><span class="bar-price">₹599</span></div>
+              <div class="bar-label">NatureCo</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:70%" id="bar4"><span class="bar-price">₹629</span></div>
+              <div class="bar-label">PureFlow</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-highlight" style="height:75%" id="bar5"><span class="bar-price">₹679 ★</span></div>
+              <div class="bar-label" style="color:var(--accent-amber);font-weight:600">YOU</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:72%" id="bar6"><span class="bar-price">₹649</span></div>
+              <div class="bar-label">AquaVibe</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:78%" id="bar7"><span class="bar-price">₹699</span></div>
+              <div class="bar-label">Earthy</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:82%" id="bar8"><span class="bar-price">₹749</span></div>
+              <div class="bar-label">BotaVita</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:88%" id="bar9"><span class="bar-price">₹799</span></div>
+              <div class="bar-label">ZenDrop</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:95%" id="bar10"><span class="bar-price">₹869</span></div>
+              <div class="bar-label">TerraH2O</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar bar-default" style="height:100%" id="bar11"><span class="bar-price">₹899</span></div>
+              <div class="bar-label">Luxe Eco</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Section 2: AI Recommendation -->
+      <div class="section" id="sec-reco">
+        <div class="section-header">
+          <div class="section-title"><span class="icon">🎯</span> AI Recommendation</div>
+          <div class="section-meta">Confidence-scored</div>
+        </div>
+        <div class="reco-card">
+          <div class="reco-top">
+            <div>
+              <div class="reco-badge">OPTIMAL RANGE</div>
+              <div class="reco-price-range" style="margin-top:12px">
+                <span class="reco-price">₹649</span>
+                <span class="reco-price-separator">–</span>
+                <span class="reco-price">₹699</span>
+              </div>
+              <div class="reco-context">
+                Positions you in the <strong>competitive sweet spot</strong> — above budget options, below premium tier. Maximizes conversion without sacrificing margin.
+              </div>
+            </div>
+            <div class="confidence-ring">
+              <svg width="52" height="52" viewBox="0 0 52 52">
+                <circle class="confidence-track" cx="26" cy="26" r="22"/>
+                <circle class="confidence-fill" id="confFill" cx="26" cy="26" r="22"/>
+              </svg>
+              <div class="confidence-text">87</div>
+            </div>
+          </div>
+          <div class="reco-metrics">
+            <div class="reco-metric">
+              <div class="reco-metric-value green">42%</div>
+              <div class="reco-metric-label">Margin</div>
+            </div>
+            <div class="reco-metric">
+              <div class="reco-metric-value amber">45th</div>
+              <div class="reco-metric-label">Percentile</div>
+            </div>
+            <div class="reco-metric">
+              <div class="reco-metric-value blue">Low</div>
+              <div class="reco-metric-label">Risk Level</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Section 3: Top Competitors -->
+      <div class="section" id="sec-comp">
+        <div class="section-header">
+          <div class="section-title"><span class="icon">🏪</span> Top Competitors</div>
+          <div class="section-meta">Sorted by relevance</div>
+        </div>
+        <div class="competitors-grid">
+          <div class="comp-card your-product" id="comp0">
+            <div class="your-tag">Your Product</div>
+            <div class="comp-name">Bamboo Hydra 750ml</div>
+            <div class="comp-seller">Your Store</div>
+            <div class="comp-price" style="color:var(--accent-amber)">₹679</div>
+            <div class="comp-rating">
+              <span class="comp-stars">★★★★★</span>
+              <span class="comp-reviews">New</span>
+            </div>
+          </div>
+          <div class="comp-card" id="comp1">
+            <div class="comp-rank">#1 Competitor</div>
+            <div class="comp-name">EcoLife Bamboo 600ml</div>
+            <div class="comp-seller">via Amazon</div>
+            <div class="comp-price">₹449</div>
+            <div class="comp-rating">
+              <span class="comp-stars">★★★★☆</span>
+              <span class="comp-reviews">2,341</span>
+            </div>
+          </div>
+          <div class="comp-card" id="comp2">
+            <div class="comp-rank">#2 Competitor</div>
+            <div class="comp-name">NatureCo Premium 1L</div>
+            <div class="comp-seller">via Flipkart</div>
+            <div class="comp-price">₹599</div>
+            <div class="comp-rating">
+              <span class="comp-stars">★★★★★</span>
+              <span class="comp-reviews">1,829</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Section 4: Price Simulator -->
+      <div class="section" id="sec-sim">
+        <div class="section-header">
+          <div class="section-title"><span class="icon">⚙️</span> Price Simulator</div>
+          <div class="section-meta">Interactive</div>
+        </div>
+        <div class="simulator-card">
+          <div class="sim-row">
+            <div class="sim-label">Price</div>
+            <div class="sim-track">
+              <div class="sim-fill" id="simFill"></div>
+              <div class="sim-thumb" id="simThumb"></div>
+            </div>
+            <div class="sim-value" id="simPrice">₹449</div>
+          </div>
+          <div class="sim-results">
+            <div class="sim-result" id="simR1">
+              <div class="sim-result-value green" id="simMargin">12%</div>
+              <div class="sim-result-label">Margin</div>
+            </div>
+            <div class="sim-result" id="simR2">
+              <div class="sim-result-value amber" id="simProfit">₹55</div>
+              <div class="sim-result-label">Profit/Unit</div>
+            </div>
+            <div class="sim-result" id="simR3">
+              <div class="sim-result-value blue" id="simPosition">8th</div>
+              <div class="sim-result-label">Percentile</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const COST = 394;
+  const timeline = [
+    { t: 800,  fn: () => show('msg1') },
+    { t: 2200, fn: () => show('thinking1') },
+    { t: 4000, fn: () => { hide('thinking1'); show('msg2'); }},
+    { t: 4500, fn: () => showSection('sec-chart') },
+    { t: 5000, fn: () => animateBars() },
+    { t: 6800, fn: () => showSection('sec-reco') },
+    { t: 7200, fn: () => animateConfidence() },
+    { t: 8000, fn: () => showSection('sec-comp') },
+    { t: 8200, fn: () => showComp('comp0') },
+    { t: 8500, fn: () => showComp('comp1') },
+    { t: 8800, fn: () => showComp('comp2') },
+    { t: 9500, fn: () => show('msg3') },
+    { t: 11000, fn: () => show('msg4') },
+    { t: 11500, fn: () => showSection('sec-sim') },
+    { t: 12000, fn: () => animateSimulator() },
+    { t: 13500, fn: () => startTyping() },
+  ];
+  function show(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('visible');
+    scrollChat();
+  }
+  function hide(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('visible');
+  }
+  function showSection(id) {
+    document.getElementById(id).classList.add('visible');
+  }
+  function showComp(id) {
+    document.getElementById(id).classList.add('visible');
+  }
+  function scrollChat() {
+    const container = document.getElementById('chatMessages');
+    setTimeout(() => container.scrollTop = container.scrollHeight, 100);
+  }
+  function animateBars() {
+    const bars = document.querySelectorAll('.bar');
+    bars.forEach((bar, i) => {
+      setTimeout(() => bar.classList.add('animated'), i * 80);
+    });
+  }
+  function animateConfidence() {
+    document.getElementById('confFill').classList.add('animated');
+  }
+  function animateSimulator() {
+    const fill = document.getElementById('simFill');
+    const thumb = document.getElementById('simThumb');
+    const price = document.getElementById('simPrice');
+    const margin = document.getElementById('simMargin');
+    const profit = document.getElementById('simProfit');
+    const position = document.getElementById('simPosition');
+    fill.classList.add('animated');
+    thumb.classList.add('animated');
+    document.getElementById('simR1').classList.add('visible');
+    setTimeout(() => document.getElementById('simR2').classList.add('visible'), 150);
+    setTimeout(() => document.getElementById('simR3').classList.add('visible'), 300);
+    const steps = [
+      { p: 449, m: '12%', pr: '₹55', pos: '8th' },
+      { p: 499, m: '21%', pr: '₹105', pos: '17th' },
+      { p: 549, m: '28%', pr: '₹155', pos: '25th' },
+      { p: 599, m: '34%', pr: '₹205', pos: '33rd' },
+      { p: 629, m: '37%', pr: '₹235', pos: '38th' },
+      { p: 649, m: '39%', pr: '₹255', pos: '42nd' },
+      { p: 679, m: '42%', pr: '₹285', pos: '45th' },
+    ];
+    steps.forEach((s, i) => {
+      setTimeout(() => {
+        price.textContent = `₹${s.p}`;
+        margin.textContent = s.m;
+        profit.textContent = s.pr;
+        position.textContent = s.pos;
+      }, i * 220);
+    });
+  }
+  function startTyping() {
+    const text = "Show me trending products in kitchen...";
+    const input = document.getElementById('inputText');
+    const inputBox = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    inputBox.classList.add('focused');
+    let i = 0;
+    const typeInterval = setInterval(() => {
+      if (i < text.length) {
+        input.textContent = text.substring(0, i + 1);
+        i++;
+      } else {
+        clearInterval(typeInterval);
+        sendBtn.classList.add('visible');
+      }
+    }, 60);
+  }
+  timeline.forEach(({ t, fn }) => setTimeout(fn, t));
+</script>
+</body>
+</html>
